@@ -1,3 +1,7 @@
+#include <iostream>
+#include <stdexcept>
+#include <string>
+
 struct Node{
     int key;
     Node* child;
@@ -12,14 +16,26 @@ struct Node{
 
 class PairingHeap {
 private:
-    Node* root;
-    Node* merge(Node*a, Node*b);
+    Node *root;
+    Node *merge(Node *a, Node *b);
 public:
     PairingHeap();
     bool empty() const;
     void insert(int key);
+    int getMin() const;
     int extractMin();
 };
+
+PairingHeap::PairingHeap() : root(nullptr) {}
+
+bool PairingHeap::empty() const {
+    return root == nullptr;
+}
+
+int PairingHeap::getMin() const {
+    if(!root) throw std::runtime_error("empty heap");
+    return root->key;
+}
 
 Node* PairingHeap::merge(Node*a, Node*b) {
     if(!a) return b;
@@ -36,7 +52,7 @@ Node* PairingHeap::merge(Node*a, Node*b) {
     return a;
 }
 
-Node PairingHeap::insert(int key){
-    Node* node = new Node(key);
-    root = merge(root,node);
+void PairingHeap::insert(int key){
+    Node *node = new Node(key);
+    root = merge(root, node);
 }
