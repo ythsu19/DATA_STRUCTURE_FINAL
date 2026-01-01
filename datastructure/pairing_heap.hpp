@@ -36,7 +36,7 @@ Node* PairingHeap::merge(Node*a, Node*b) {
     return a;
 }
 
-Node PairingHeap::insert(int key){
+void PairingHeap::insert(int key){
     Node* node = new Node(key);
     root = merge(root,node);
 }
