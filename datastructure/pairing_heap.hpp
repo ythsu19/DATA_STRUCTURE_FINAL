@@ -2,7 +2,12 @@ struct Node{
     int key;
     Node* child;
     Node* sibling;
-    Node* parent;
+
+    Node(int k) {
+        key = k;
+        child = nullptr;
+        sibling = nullptr;
+    }
 };
 
 class PairingHeap {
@@ -25,9 +30,13 @@ Node* PairingHeap::merge(Node*a, Node*b) {
         a = b; b = tmp;
     }
     
-    b->parent = a;
     b->sibling = a->child;
     a->child = b;
 
     return a;
+}
+
+Node PairingHeap::insert(int key){
+    Node* node = new Node(key);
+    root = merge(root,node);
 }
