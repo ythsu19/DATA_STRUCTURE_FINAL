@@ -1,24 +1,39 @@
-#include <queue>
-#include <vector>
-#include <functional>
+#ifndef BINARY_HEAP_HPP
+#define BINARY_HEAP_HPP
 
-class BinaryHeapWrapper {
+#include <vector>
+#include <stdexcept>
+#include <iostream>
+
+template <typename T>
+class BinaryHeap {
 private:
-    // min-heap
-    std::priority_queue<int, std::vector<int>, std::greater<int>> pq;
+    // vector base
+    std::vector<T> data;
+
+    // Percolate Up / Sift Up
+    void siftUp(int index);
+
+    // Percolate Down / Sift Down
+    void siftDown(int index);
 
 public:
-    void insert(int x) {
-        pq.push(x);
-    }
+    BinaryHeap() = default;
+    ~BinaryHeap() = default;
 
-    int extractMin() {
-        int ret = pq.top();
-        pq.pop();
-        return ret;
-    }
+    bool empty() const;
+    size_t size() const;
+    
+    const T& top() const;
 
-    bool empty() const {
-        return pq.empty();
-    }
+    void push(const T& value);
+
+    void pop();
+
+    void clear();
 };
+
+
+#include "binary_heap.ipp"
+
+#endif
