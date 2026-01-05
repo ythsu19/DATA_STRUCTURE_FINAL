@@ -1,16 +1,10 @@
-#include "pairing_heap.hpp"
-
-#include <iostream>
-#include <stdexcept>
-#include <vector>
-#include <string>
-
-Node *PairingHeap::merge(Node *a, Node *b) {
+template <typename T>
+Node<T> *PairingHeap<T>::merge(Node<T> *a, Node<T> *b) {
     if(!a) return b;
     if(!b) return a;
 
     if(a->key > b->key) {
-        Node *tmp = a;
+        Node<T> *tmp = a;
         a = b; b = tmp;
     }
     
@@ -22,14 +16,16 @@ Node *PairingHeap::merge(Node *a, Node *b) {
     return a;
 }
 
-Node *PairingHeap::insert(int key) {
-    Node *node = new Node(key);
+template <typename T>
+Node<T> *PairingHeap<T>::insert(T key) {
+    Node<T> *node = new Node<T>(key);
     root = merge(root, node);
     sz++;
     return node;
 }
 
-void PairingHeap::meld(PairingHeap& other) {
+template <typename T>
+void PairingHeap<T>::meld(PairingHeap<T>& other) {
     if (other.empty()) return;
 
     root = merge(root, other.root);
@@ -39,13 +35,14 @@ void PairingHeap::meld(PairingHeap& other) {
     other.sz = 0;
 }
 
-Node *PairingHeap::twoPassMerge(Node *firstSibling) {
+template <typename T>
+Node<T> *PairingHeap<T>::twoPassMerge(Node<T> *firstSibling) {
     if(!firstSibling) return nullptr;
     if(!firstSibling->sibling) return firstSibling;
 
-    Node *a = firstSibling;
-    Node *b = firstSibling->sibling;
-    Node *remaining = b->sibling;
+    Node<T> *a = firstSibling;
+    Node<T> *b = firstSibling->sibling;
+    Node<T> *remaining = b->sibling;
 
     a->sibling = nullptr;
     b->sibling = nullptr;
@@ -53,12 +50,13 @@ Node *PairingHeap::twoPassMerge(Node *firstSibling) {
     return merge(merge(a, b), twoPassMerge(remaining));
 }
 
-int PairingHeap::deleteMin() {
+template <typename T>
+T PairingHeap<T>::deleteMin() {
     if(this->empty()) throw std::runtime_error("PairingHeap::deleteMin(): empty heap");
 
-    Node *oldRoot = root;
-    int result = root->key;
-    Node *children = root->child;
+    Node<T> *oldRoot = root;
+    T result = root->key;
+    Node<T> *children = root->child;
 
     if (children) {
         children->prev = nullptr;
@@ -76,15 +74,15 @@ int PairingHeap::deleteMin() {
     return result;
 }
 
-void PairingHeap::cut(Node *x) {
-    Node *previous = x->prev;
-    Node *nextSibling = x->sibling;
+template <typename T>
+void PairingHeap<T>::cut(Node<T> *x) {
+    Node<T> *previous = x->prev;
+    Node<T> *nextSibling = x->sibling;
 
     if (nextSibling) {
         nextSibling->prev = previous;
     }
 
-    // Check x is parent or leftSibling
     if (previous->child == x){
         previous->child = nextSibling;
     } else {
@@ -95,7 +93,8 @@ void PairingHeap::cut(Node *x) {
     x->sibling = nullptr;
 }
 
-void PairingHeap::decreaseKey(Node *node, int newKey) {
+template <typename T>
+void PairingHeap<T>::decreaseKey(Node<T> *node, T newKey) {
     if (newKey > node->key) throw std::runtime_error("PairingHeap::decreaseKey: newKey must be <= current key");
 
     node->key = newKey;
@@ -107,13 +106,14 @@ void PairingHeap::decreaseKey(Node *node, int newKey) {
     root = merge(root, node);
 }
 
-void PairingHeap::deleteAll(Node *x) {
+template <typename T>
+void PairingHeap<T>::deleteAll(Node<T> *x) {
     if (!x) return;
     
-    Node *current = x;
+    Node<T> *current = x;
 
     while (current) {
-        Node *next = current->sibling;
+        Node<T> *next = current->sibling;
         deleteAll(current->child);
         delete current;
         current = next;  
