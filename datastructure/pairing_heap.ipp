@@ -1,3 +1,7 @@
+#ifdef __INTELLISENSE__
+#include "pairing_heap.hpp"
+#endif
+
 template <typename T>
 Node<T> *PairingHeap<T>::merge(Node<T> *a, Node<T> *b) {
     if(!a) return b;
