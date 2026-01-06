@@ -59,6 +59,38 @@ vector<vector<Edge>> generate_graph(int V, double density) {
     return adj;
 }
 
+// pure-array method
+// pure-array method (Linear Scan) - O(V^2)
+void dijkstra_brutal(int V, const vector<vector<Edge>> &adj) {
+    vector<int> dist(V, INF);
+    vector<bool> vis(V, false);
+
+    dist[0] = 0;
+
+    for (int i = 0; i < V; i++) {
+        // 1. Find min node (Linear Scan O(V))
+        int u = -1;
+        int minDist = INF;
+        for (int j = 0; j < V; j++) {
+            if (!vis[j] && dist[j] < minDist) {
+                u = j;
+                minDist = dist[j];
+            }
+        }
+
+        if (u == -1 || dist[u] == INF) break;
+        vis[u] = true;
+
+        // 2. Relax edges
+        for (const auto &edge : adj[u]) {
+            if (dist[u] + edge.weight < dist[edge.to]) {
+                dist[edge.to] = dist[u] + edge.weight;
+            }
+        }
+    }
+}
+
+// min-binary-heap
 void dijkstra_binary(int V, const vector<vector<Edge>> &adj) {
     BinaryHeap<State> pq;
     vector<int> dist(V, INF);
@@ -87,6 +119,7 @@ void dijkstra_binary(int V, const vector<vector<Edge>> &adj) {
     }
 }
 
+// min-pairing-heap
 void dijkstra_pairing(int V, const vector<vector<Edge>> &adj) {
     PairingHeap<State> pq;
     vector<int> dist(V, INF);
@@ -132,7 +165,34 @@ double measure_time(Func func) {
     return chrono::duration<double, milli>(end - start).count();
 }
 
-int main() {    
+int main(int argc, char* argv[]) {  
+    if (argc > 1) {
+        // --- Perf 測試模式 ---
+        string mode = argv[1];
+        
+        // 設定一個固定的測試環境 (高密度、大點數，讓 Cache Miss 更明顯)
+        int V_Perf = 5000; 
+        double D_Perf = 20.0;
+        
+        cout << "Perf Mode: Running " << mode << " (V=" << V_Perf << ", D=" << D_Perf << "%)" << endl;
+        
+        // 產生圖形
+        auto adj = generate_graph(V_Perf, D_Perf);
+
+        // 根據參數決定跑哪一個演算法
+        if (mode == "brutal") {
+            dijkstra_brutal(V_Perf, adj);
+        } else if (mode == "binary") {
+            dijkstra_binary(V_Perf, adj);
+        } else if (mode == "pairing") {
+            dijkstra_pairing(V_Perf, adj);
+        } else {
+            cout << "Unknown mode. Please use 'brutal', 'binary', or 'pairing'." << endl;
+        }
+        
+        return 0; // 跑完就結束
+    }
+    
     // testing density 
     vector<double> densities = {0.1, 0.5, 1.0, 2.5, 5.0, 10.0, 20.0, 30.0, 40.0, 50.0, 60.0, 70.0, 80.0, 90.0, 100.0};
 
@@ -149,8 +209,14 @@ int main() {
         auto adj = generate_graph(V_FIXED, density);
         
         // warm up (not in result)
+        dijkstra_brutal(V_FIXED, adj);
         dijkstra_binary(V_FIXED, adj);
         dijkstra_pairing(V_FIXED, adj);
+
+        // pure-array brutal (liner-scan)
+        double time_brutal = measure_time([&]() {
+            dijkstra_brutal(V_FIXED, adj);
+        });
         
         // min-binary-heap
         double time_binary = measure_time([&]() {
@@ -163,8 +229,8 @@ int main() {
         });
         
         // output record
-        cout << "Binay: " << time_binary << "ms | Pairing: " << time_pairing << "ms" << endl;
-        csv << density << "," << time_binary << "," << time_pairing << "\n";
+        cout << "Array: " << time_brutal << "ms | Binay: " << time_binary << "ms | Pairing: " << time_pairing << "ms" << endl;
+        csv << density << "," << time_brutal << "," << time_binary << "," << time_pairing << "\n";
     }
     
     cout << "Benchmark finished! Data saved to 'benchmark_result.csv'" << endl;

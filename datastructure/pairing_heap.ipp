@@ -22,7 +22,9 @@ Node<T> *PairingHeap<T>::merge(Node<T> *a, Node<T> *b) {
 
 template <typename T>
 Node<T> *PairingHeap<T>::insert(T key) {
-    Node<T> *node = new Node<T>(key);
+    // Node<T> *node = new Node<T>(key); (origin)
+    Node<T> *node = pool.allocate(key); // use memory pool
+
     root = merge(root, node);
     sz++;
     return node;
@@ -68,7 +70,8 @@ T PairingHeap<T>::deleteMin() {
 
     root = twoPassMerge(children);
     
-    delete oldRoot;
+    // delete oldRoot; (origin)
+    pool.deallocate(oldRoot); // use memory pool
     sz--;
 
     if (root) {
@@ -119,7 +122,10 @@ void PairingHeap<T>::deleteAll(Node<T> *x) {
     while (current) {
         Node<T> *next = current->sibling;
         deleteAll(current->child);
-        delete current;
+
+        // delete current; (origin)
+        pool.deallocate(current); // use memory pool
+
         current = next;  
     }
 }

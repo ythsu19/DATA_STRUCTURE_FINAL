@@ -6,6 +6,8 @@
 #include <stdexcept>
 #include <string>
 
+#include "memory_pool.hpp"
+
 template<typename T>
 struct Node{
     T key;
@@ -23,6 +25,8 @@ private:
     Node<T> *root;
     std::size_t sz;
 
+    MemoryPool<Node<T>> pool;
+
     // meld two heaps rooted at a and b, return new root
     static Node<T> *merge(Node<T> *a, Node<T> *b);
 
@@ -33,7 +37,7 @@ private:
     static void cut(Node<T> *x);
 
     // destructor/clear helper: delete all nodes in subtree
-    static void deleteAll(Node<T>* x);
+    void deleteAll(Node<T>* x);
 public:
     PairingHeap() : root(nullptr), sz(0) {}
     ~PairingHeap() { clear(); }
