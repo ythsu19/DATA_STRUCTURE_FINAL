@@ -273,8 +273,12 @@ int main(int argc, char* argv[]) {
         
         auto adj = generate_graph(V_FIXED, density);
         
-        // Warm up (Optional, but good practice)
-        // dijkstra_std(V_FIXED, adj); 
+        // Warm up
+        dijkstra_brutal(V_FIXED, adj);
+        dijkstra_std(V_FIXED, adj); 
+        dijkstra_binary(V_FIXED, adj);
+        dijkstra_pairing_no(V_FIXED, adj);
+        dijkstra_pairing(V_FIXED, adj);
         
         double time_brutal = measure_time([&]() { dijkstra_brutal(V_FIXED, adj); });
         double time_std    = measure_time([&]() { dijkstra_std(V_FIXED, adj); });

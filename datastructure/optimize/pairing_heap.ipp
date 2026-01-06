@@ -2,6 +2,8 @@
 #include "pairing_heap.hpp"
 #endif
 
+using namespace Opt;
+
 template <typename T>
 Node<T> *PairingHeap<T>::merge(Node<T> *a, Node<T> *b) {
     if(!a) return b;
