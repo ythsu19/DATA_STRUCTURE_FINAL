@@ -90,4 +90,4 @@ public:
     }
 };
 
-#endif // MEMORY_POOL_HPP
+#endif

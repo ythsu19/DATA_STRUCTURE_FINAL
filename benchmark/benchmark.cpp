@@ -6,8 +6,9 @@
 #include <fstream>
 #include <iomanip>
 
-#include "../baseline/binary_heap.hpp"
-#include "../datastructure/pairing_heap.hpp"
+#include "../baseline/binary_heap.hpp" // min-binary-heap
+#include "../datastructure/origin/pairing_heap_no.hpp" // min-pairing-heap (no memory pool)
+#include "../datastructure/optimize/pairing_heap.hpp" // min-pairing-heap
 
 using namespace std;
 
@@ -60,7 +61,6 @@ vector<vector<Edge>> generate_graph(int V, double density) {
 }
 
 // pure-array method
-// pure-array method (Linear Scan) - O(V^2)
 void dijkstra_brutal(int V, const vector<vector<Edge>> &adj) {
     vector<int> dist(V, INF);
     vector<bool> vis(V, false);
@@ -85,6 +85,36 @@ void dijkstra_brutal(int V, const vector<vector<Edge>> &adj) {
         for (const auto &edge : adj[u]) {
             if (dist[u] + edge.weight < dist[edge.to]) {
                 dist[edge.to] = dist[u] + edge.weight;
+            }
+        }
+    }
+}
+
+// std::priority_queue
+void dijkstra_std(int V, const vector<vector<Edge>> &adj) {
+    // 使用 greater 來變成 min-heap
+    priority_queue<State, vector<State>, greater<State>> pq;
+    vector<int> dist(V, INF);
+
+    dist[0] = 0;
+    pq.push({0, 0});
+
+    while (!pq.empty()) {
+        State top = pq.top();
+        pq.pop();
+
+        int d = top.dist;
+        int u = top.vertex;
+
+        if (d > dist[u]) continue;
+
+        for (const auto &edge : adj[u]) {
+            int v = edge.to;
+            int weight = edge.weight;
+
+            if (dist[u] + weight < dist[v]) {
+                dist[v] = dist[u] + weight;
+                pq.push({dist[v], v});
             }
         }
     }
@@ -119,12 +149,45 @@ void dijkstra_binary(int V, const vector<vector<Edge>> &adj) {
     }
 }
 
+// 4. Pairing Heap (NO Memory Pool) - O(E + V log V) theory, but bad cache
+void dijkstra_pairing_no(int V, const vector<vector<Edge>> &adj) {
+    Origin::PairingHeap_NO<State> pq; // 使用無 Pool 版本
+    vector<int> dist(V, INF);
+    vector<Origin::Node<State> *> handles(V, nullptr);
+    
+    dist[0] = 0;
+    handles[0] = pq.insert({0, 0});
+    
+    while (!pq.empty()) {
+        State top = pq.getMin();
+        pq.deleteMin();
+
+        int u = top.vertex;
+        handles[u] = nullptr;
+        
+        for (const auto &edge : adj[u]) {
+            int v = edge.to;
+            int weight = edge.weight;
+            int new_dist = dist[u] + weight;
+            
+            if (new_dist < dist[v]) {
+                dist[v] = new_dist;
+                if (handles[v] == nullptr) {
+                    handles[v] = pq.insert({new_dist, v});
+                } else {
+                    pq.decreaseKey(handles[v], {new_dist, v});
+                }
+            }
+        }
+    }
+}
+
 // min-pairing-heap
 void dijkstra_pairing(int V, const vector<vector<Edge>> &adj) {
-    PairingHeap<State> pq;
+    Opt::PairingHeap<State> pq;
     vector<int> dist(V, INF);
     // 關鍵：用 handles 陣列紀錄指標，達成 O(1) 存取
-    vector<Node<State> *> handles(V, nullptr);
+    vector<Opt::Node<State> *> handles(V, nullptr);
     
     dist[0] = 0;
     handles[0] = pq.insert({0, 0});
@@ -167,70 +230,70 @@ double measure_time(Func func) {
 
 int main(int argc, char* argv[]) {  
     if (argc > 1) {
-        // --- Perf 測試模式 ---
+        // --- Perf / Valgrind 測試模式 ---
         string mode = argv[1];
         
-        // 設定一個固定的測試環境 (高密度、大點數，讓 Cache Miss 更明顯)
+        // 為了 Perf 分析，使用較高密度與規模
         int V_Perf = 5000; 
         double D_Perf = 20.0;
         
         cout << "Perf Mode: Running " << mode << " (V=" << V_Perf << ", D=" << D_Perf << "%)" << endl;
         
-        // 產生圖形
         auto adj = generate_graph(V_Perf, D_Perf);
 
-        // 根據參數決定跑哪一個演算法
         if (mode == "brutal") {
             dijkstra_brutal(V_Perf, adj);
+        } else if (mode == "std") {
+            dijkstra_std(V_Perf, adj);
         } else if (mode == "binary") {
             dijkstra_binary(V_Perf, adj);
+        } else if (mode == "pairing_no") {
+            dijkstra_pairing_no(V_Perf, adj);
         } else if (mode == "pairing") {
             dijkstra_pairing(V_Perf, adj);
         } else {
-            cout << "Unknown mode. Please use 'brutal', 'binary', or 'pairing'." << endl;
+            cout << "Unknown mode. Use: brutal, std, binary, pairing_no, pairing" << endl;
         }
         
-        return 0; // 跑完就結束
+        return 0;
     }
     
-    // testing density 
+    // --- 完整 Benchmark 模式 ---
     vector<double> densities = {0.1, 0.5, 1.0, 2.5, 5.0, 10.0, 20.0, 30.0, 40.0, 50.0, 60.0, 70.0, 80.0, 90.0, 100.0};
 
     ofstream csv("benchmark_result.csv");
-    csv << "Density(%),Std_Heap(ms),Pairing_Heap(ms)\n"; // csv title
+    // 更新 CSV Header
+    csv << "Density(%),Linear(ms),Std_PQ(ms),Binary(ms),Pairing_NoPool(ms),Pairing_OPT(ms)\n"; 
     
     cout << "Starting Benchmark (V = " << V_FIXED << ")..." << endl;
-    cout << fixed << setprecision(2); // 51.23(45....)
+    cout << fixed << setprecision(2);
 
     for (double density : densities) {
         cout << "Running Density: " << density << "% ... " << flush;
         
-        // data
         auto adj = generate_graph(V_FIXED, density);
         
-        // warm up (not in result)
-        dijkstra_brutal(V_FIXED, adj);
-        dijkstra_binary(V_FIXED, adj);
-        dijkstra_pairing(V_FIXED, adj);
+        // Warm up (Optional, but good practice)
+        // dijkstra_std(V_FIXED, adj); 
+        
+        double time_brutal = measure_time([&]() { dijkstra_brutal(V_FIXED, adj); });
+        double time_std    = measure_time([&]() { dijkstra_std(V_FIXED, adj); });
+        double time_binary = measure_time([&]() { dijkstra_binary(V_FIXED, adj); });
+        double time_pair_n = measure_time([&]() { dijkstra_pairing_no(V_FIXED, adj); });
+        double time_pair_p = measure_time([&]() { dijkstra_pairing(V_FIXED, adj); });
+        
+        cout << "\n   Linear:     " << time_brutal << " ms"
+             << "\n   Std_PQ:     " << time_std << " ms"
+             << "\n   Binary:     " << time_binary << " ms"
+             << "\n   Pairing_NO: " << time_pair_n << " ms"
+             << "\n   Pairing_OPT: " << time_pair_p << " ms" << endl;
 
-        // pure-array brutal (liner-scan)
-        double time_brutal = measure_time([&]() {
-            dijkstra_brutal(V_FIXED, adj);
-        });
-        
-        // min-binary-heap
-        double time_binary = measure_time([&]() {
-            dijkstra_binary(V_FIXED, adj);
-        });
-        
-        // min-pairing-heap
-        double time_pairing = measure_time([&]() {
-            dijkstra_pairing(V_FIXED, adj);
-        });
-        
-        // output record
-        cout << "Array: " << time_brutal << "ms | Binay: " << time_binary << "ms | Pairing: " << time_pairing << "ms" << endl;
-        csv << density << "," << time_brutal << "," << time_binary << "," << time_pairing << "\n";
+        csv << density << "," 
+            << time_brutal << "," 
+            << time_std << "," 
+            << time_binary << "," 
+            << time_pair_n << "," 
+            << time_pair_p << "\n";
     }
     
     cout << "Benchmark finished! Data saved to 'benchmark_result.csv'" << endl;
