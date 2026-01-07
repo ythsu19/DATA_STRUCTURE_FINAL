@@ -1,4 +1,5 @@
 
+
 import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
@@ -21,7 +22,7 @@ try:
     # (A) Linear Scan (用淡灰色虛線，避免視覺干擾)
     if 'Linear(ms)' in df.columns:
         plt.plot(df['Density(%)'], df['Linear(ms)'], 
-                 label='Linear Scan', color='grey', linestyle='--', alpha=0.3)
+                 label='Linear Scan', color='black', linestyle='-', alpha=0.3)
 
     # (B) Standard Priority Queue (Baseline - 藍色圓點)
     if 'Std_PQ(ms)' in df.columns:
@@ -99,7 +100,7 @@ try:
                 
                 plt.annotate(text, 
                              xy=(best_density, best_time), 
-                             xytext=(best_density + 5, best_time + (max_val_heap * 0.1)),
+                             xytext=(best_density + 5, best_time - (max_val_heap * 0.1)),
                              arrowprops=dict(facecolor='black', shrink=0.05, width=2),
                              fontsize=11, 
                              bbox=dict(boxstyle="round,pad=0.3", fc="white", ec="black", alpha=0.8))
@@ -114,3 +115,4 @@ except Exception as e:
     print("An error occurred in Python script:")
     print(e)
     sys.exit(1)
+
