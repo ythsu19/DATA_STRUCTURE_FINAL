@@ -16,7 +16,7 @@ import os
 
 try:
     # 1. 讀取 CSV
-    csv_path = '../benchmark/benchmark_result.csv'
+    csv_path = '/home/pkboie/DS/DATA_STRUCTURE_FINAL/benchmark/benchmark_result.csv'
 
     print(f"Reading data from: {csv_path}")
     df = pd.read_csv(csv_path)
@@ -139,7 +139,6 @@ int main() {
     // 2. 執行 Python 腳本
     cout << "Running visualization script..." << endl;
     
-    // 嘗試 python3，如果失敗則嘗試 python
     int ret = system("python3 plot_chart.py");
     if (ret != 0) {
         cout << "python3 failed, trying python..." << endl;
@@ -148,7 +147,6 @@ int main() {
 
     if (ret == 0) {
         cout << "Visualization complete." << endl;
-        // 可選擇刪除臨時腳本
         // system("rm plot_chart.py");
     } else {
         cerr << "Python script execution failed." << endl;

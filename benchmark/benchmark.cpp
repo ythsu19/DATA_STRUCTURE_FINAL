@@ -92,7 +92,7 @@ void dijkstra_brutal(int V, const vector<vector<Edge>> &adj) {
 
 // std::priority_queue
 void dijkstra_std(int V, const vector<vector<Edge>> &adj) {
-    // 使用 greater 來變成 min-heap
+    // greater min-heap
     priority_queue<State, vector<State>, greater<State>> pq;
     vector<int> dist(V, INF);
 
@@ -149,9 +149,9 @@ void dijkstra_binary(int V, const vector<vector<Edge>> &adj) {
     }
 }
 
-// 4. Pairing Heap (NO Memory Pool) - O(E + V log V) theory, but bad cache
+// Pairing Heap (NO Memory Pool)
 void dijkstra_pairing_no(int V, const vector<vector<Edge>> &adj) {
-    Origin::PairingHeap_NO<State> pq; // 使用無 Pool 版本
+    Origin::PairingHeap_NO<State> pq;
     vector<int> dist(V, INF);
     vector<Origin::Node<State> *> handles(V, nullptr);
     
@@ -186,7 +186,7 @@ void dijkstra_pairing_no(int V, const vector<vector<Edge>> &adj) {
 void dijkstra_pairing(int V, const vector<vector<Edge>> &adj) {
     Opt::PairingHeap<State> pq;
     vector<int> dist(V, INF);
-    // 關鍵：用 handles 陣列紀錄指標，達成 O(1) 存取
+    // handles => O(1)
     vector<Opt::Node<State> *> handles(V, nullptr);
     
     dist[0] = 0;
@@ -207,10 +207,10 @@ void dijkstra_pairing(int V, const vector<vector<Edge>> &adj) {
             if (new_dist < dist[v]) {
                 dist[v] = new_dist;
                 if (handles[v] == nullptr) {
-                    // 該點不在 Heap 中 -> Insert
+                    // not in Heap -> Insert
                     handles[v] = pq.insert({new_dist, v});
                 } else {
-                    // 該點已在 Heap 中 -> Decrease Key (關鍵優勢)
+                    // in Heap -> Decrease Key
                     pq.decreaseKey(handles[v], {new_dist, v});
                 }
             }

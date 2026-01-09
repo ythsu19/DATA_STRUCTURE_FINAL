@@ -1,6 +1,10 @@
-# compile 
-g++ benchmark.cpp -o benchmark -O3
+# compile
+make
+# only for benchmark csv
+make run
+# all automation
+make experiment
 
-# profile
+# trying profile
 valgrind --tool=cachegrind ./benchmark binary
 valgrind --tool=cachegrind ./benchmark pairing

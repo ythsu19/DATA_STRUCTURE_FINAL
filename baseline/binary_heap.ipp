@@ -22,12 +22,12 @@ void BinaryHeap<T>::siftDown(int index) {
     int smallest = index;
 
     // check leftChild exist and whether is smaller
-    if (leftChild < data.size() && data[leftChild] < data[smallest]) {
+    if (leftChild < (int)data.size() && data[leftChild] < data[smallest]) {
         smallest = leftChild;
     }
 
     // check rightChild exist and whether is smaller
-    if (rightChild < data.size() && data[rightChild] < data[smallest]) {
+    if (rightChild < (int)data.size() && data[rightChild] < data[smallest]) {
         smallest = rightChild;
     }
 

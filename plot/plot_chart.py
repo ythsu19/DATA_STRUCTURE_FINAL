@@ -8,7 +8,7 @@ import os
 
 try:
     # 1. 讀取 CSV
-    csv_path = '../benchmark/benchmark_result.csv'
+    csv_path = '/home/pkboie/DS/DATA_STRUCTURE_FINAL/benchmark/benchmark_result.csv'
 
     print(f"Reading data from: {csv_path}")
     df = pd.read_csv(csv_path)
